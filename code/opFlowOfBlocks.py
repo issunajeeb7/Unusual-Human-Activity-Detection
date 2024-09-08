@@ -7,33 +7,32 @@ def calcOptFlowOfBlocks(mag, angle, grayImg):
     
     rows = grayImg.shape[0]
     cols = grayImg.shape[1]
+    
     noOfRowInBlock = 20
     noOfColInBlock = 20
     
-    # Calculate the number of blocks and convert to integer
-    xBlockSize = int(rows / noOfRowInBlock)
-    yBlockSize = int(cols / noOfColInBlock)
+    # Ensure integer division
+    xBlockSize = rows // noOfRowInBlock
+    yBlockSize = cols // noOfColInBlock
     
     '''To calculate the optical flow of each block'''
-    
-    '''Declare an array initialized to 0 of the size of the number of blocks'''
     opFlowOfBlocks = np.zeros((xBlockSize, yBlockSize, 2))
     
+    # Convert indices to integers to avoid TypeError
     for index, value in np.ndenumerate(mag):
-        block_x = index[0] // noOfRowInBlock
-        block_y = index[1] // noOfColInBlock
-        opFlowOfBlocks[block_x, block_y, 0] += mag[index[0], index[1]]
-        opFlowOfBlocks[block_x, block_y, 1] += angle[index[0], index[1]]
+        block_x = int(index[0] // noOfRowInBlock)
+        block_y = int(index[1] // noOfColInBlock)
+        if block_x < xBlockSize and block_y < yBlockSize:  # Ensure within bounds
+            opFlowOfBlocks[block_x, block_y, 0] += mag[index[0], index[1]]
+            opFlowOfBlocks[block_x, block_y, 1] += angle[index[0], index[1]]
 
     centreOfBlocks = np.zeros((xBlockSize, yBlockSize, 2))
     for index, value in np.ndenumerate(opFlowOfBlocks):
         block_x = index[0]
         block_y = index[1]
-        opFlowOfBlocks[block_x, block_y, 0] = float(opFlowOfBlocks[block_x, block_y, 0]) / (noOfRowInBlock * noOfColInBlock)
-        val = opFlowOfBlocks[block_x, block_y, 1]
         
-        if index[2] == 1:
-            angInDeg = math.degrees(val)
+        if index[2] == 1:  # Angle
+            angInDeg = math.degrees(opFlowOfBlocks[block_x, block_y, 1])
             if angInDeg > 337.5:
                 k = 0
             else:
@@ -48,8 +47,8 @@ def calcOptFlowOfBlocks(mag, angle, grayImg):
                     k = int(round(a2 / 45))
             opFlowOfBlocks[block_x, block_y, 1] = k
         
-        if index[2] == 0:
-            r = val
+        elif index[2] == 0:  # Magnitude
+            r = opFlowOfBlocks[block_x, block_y, 0]
             x = ((block_x + 1) * noOfRowInBlock) - (noOfRowInBlock / 2)
             y = ((block_y + 1) * noOfColInBlock) - (noOfColInBlock / 2)
             centreOfBlocks[block_x, block_y, 0] = x
