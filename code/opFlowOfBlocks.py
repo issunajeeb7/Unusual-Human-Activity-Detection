@@ -16,7 +16,8 @@ def calcOptFlowOfBlocks(mag,angle,grayImg):
 
     '''declare an array initialized to 0 of the size of the number of blocks'''
     
-    opFlowOfBlocks = np.zeros((xBlockSize,yBlockSize,2))
+    opFlowOfBlocks = np.zeros((int(xBlockSize), int(yBlockSize), 2))
+
     
     for index,value in np.ndenumerate(mag):
         opFlowOfBlocks[index[0]/noOfRowInBlock][index[1]/noOfColInBlock][0] += mag[index[0]][index[1]]
